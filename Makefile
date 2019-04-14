@@ -238,7 +238,7 @@ AUTOHEADER = ${SHELL} /home/jseago/code/dotman/missing autoheader
 AUTOMAKE = ${SHELL} /home/jseago/code/dotman/missing automake-1.15
 AWK = gawk
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"dotman\" -DPACKAGE_TARNAME=\"dotman\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"dotman\ 0.1\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"dotman\" -DVERSION=\"0.1\"
+DEFS = -DPACKAGE_NAME=\"dotman\" -DPACKAGE_TARNAME=\"dotman\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"dotman\ 0.1\" -DPACKAGE_BUGREPORT=\"seagoj+dotman@gmail.com\" -DPACKAGE_URL=\"\" -DPACKAGE=\"dotman\" -DVERSION=\"0.1\"
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
@@ -255,7 +255,7 @@ LTLIBOBJS =
 MAKEINFO = ${SHELL} /home/jseago/code/dotman/missing makeinfo
 MKDIR_P = /bin/mkdir -p
 PACKAGE = dotman
-PACKAGE_BUGREPORT = 
+PACKAGE_BUGREPORT = seagoj+dotman@gmail.com
 PACKAGE_NAME = dotman
 PACKAGE_STRING = dotman 0.1
 PACKAGE_TARNAME = dotman

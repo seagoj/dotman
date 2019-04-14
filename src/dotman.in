@@ -1,3 +1,96 @@
 #!/usr/bin/env bash
 
-echo "@SSH@"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"/dotman
+CONFIG_FILE="$CONFIG_DIR"/config
+
+default() {
+    mkdir -p "$CONFIG_DIR"
+    echo "ACCESS_TOKEN=" >> "$CONFIG_FILE"
+    echo "REPO_REMOTE=" >> "$CONFIG_FILE"
+    echo "EMAIL=" > "$CONFIG_FILE"
+    exit
+}
+
+deploy() {
+    if [ -z "$ACCESS_TOKEN" ] || [ -z "$EMAIL" ] || [ -z "$REPO_LOCAL" ] || [ -z "$REPO_REMOTE" ]; then
+        echo "Invalid config";
+        exit 1
+    fi
+
+    local create_ssh_key = <<CREATE_SSH_KEY
+[ -f ~/.ssh/id_rsa ] || ssh-keygen -t rsa -b 4096 -C \"$EMAIL\" && \
+curl --header \"Authorization: token $ACCESS_TOKEN\" \
+    --header \"Content-Type: application/json\" \
+    --request POST \
+    --data '{\"title\":\"$REMOTE\",\"key\":\"$(cat ~/.ssh/id_rsa.pub)\"}' \
+    https://api.github.com/user/keys
+CREATE_SSH_KEY
+
+    local clone_repo = <<CLONE_REPO
+git clone \"$REPO_REMOTE\" \"$REPO_LOCAL\"
+CLONE_REPO
+
+    local make_install = <<MAKE_INSTALL
+cd "$REPO_LOCAL" && \
+./configure && \
+make && \
+make install
+MAKE_INSTALL
+
+    REMOTE="$1"
+    ssh-copy-id "$REMOTE" && \
+    @GPG@ --export -a | @SSH@ $REMOTE @GPG@ --import --batch && \
+    @GPG@ --export-secret-keys -a | @SSH@ $REMOTE @GPG@ --allow-secret-key-import --import --batch && \
+    @SSH@ "$REMOTE" "$create_ssh_key" && \
+    @SSH@ "$REMOTE" "$clone_repo" && \
+    @SSH@ "$REMOTE" "$make_install"
+    exit
+}
+
+help() {
+    echo "\
+usage:
+    --deploy [ssh remote host])
+        deploy dotfiles to a remote system via ssh
+
+    --help)
+        displays this message
+
+    --init)
+        initialize dotfiles"
+    exit
+}
+
+init() {
+    @GIT@ clone "$REMOTE_REPO" "$LOCAL_REPO" && \
+    @STOW@ -R --dir="$LOCAL_REPO" --target="$HOME"
+}
+
+[ ! -f "$CONFIG_FILE" ] && default
+. "$CONFIG_FILE"
+
+[ $# -eq 0 ] && help
+
+while [ $# -ge 1 ]; do
+    key="$1"
+
+    case "$key" in
+        "--deploy")
+            if [ -z "$2" ]; then
+                echo "usage: --deploy [ssh remote host]"
+                exit 1
+            fi
+            deploy "$2"
+            ;;
+        "--help"|"-h")
+            help
+            ;;
+        "--init")
+            init
+            ;;
+        *)
+            echo "Unknown argument $key"
+            exit 1
+            ;;
+    esac
+done
